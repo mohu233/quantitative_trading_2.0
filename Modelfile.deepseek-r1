@@ -1,4 +1,0 @@
-FROM E:/OKX/models/deepseek-r1-0528-qwen3-8b-q4_k_m.gguf
-
-PARAMETER temperature 0.6
-PARAMETER num_ctx 4096

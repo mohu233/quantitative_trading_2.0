@@ -1,0 +1,10 @@
+{
+  "mysql_host": "127.0.0.1",
+  "mysql_port": 3306,
+  "mysql_user": "root",
+  "mysql_password": "",
+  "mysql_database": "okx_market",
+  "symbols": ["BTC-USDT", "ETH-USDT"],
+  "poll_seconds": 5,
+  "web_port": 8080
+}

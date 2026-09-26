@@ -11,7 +11,7 @@ import math
 from dataclasses import dataclass
 from pathlib import Path
 
-from main import load_csv, validate_candles
+from .candles import load_csv, validate_candles
 
 
 @dataclass(frozen=True)
@@ -32,11 +32,28 @@ class MacdConfig:
 
 
 FEATURE_FIELDS = (
-    "timestamp_ms", "datetime_utc", "close", "volume",
-    "dif", "dea", "hist", "dif_pct", "dea_pct", "hist_pct", "hist_z",
-    "hist_slope_pct", "hist_accel_pct",
-    "zl_dif", "zl_dea", "zl_hist", "zl_dif_pct", "zl_dea_pct", "zl_hist_pct",
-    "zl_hist_z", "zl_hist_slope_pct", "zl_hist_accel_pct",
+    "timestamp_ms",
+    "datetime_utc",
+    "close",
+    "volume",
+    "dif",
+    "dea",
+    "hist",
+    "dif_pct",
+    "dea_pct",
+    "hist_pct",
+    "hist_z",
+    "hist_slope_pct",
+    "hist_accel_pct",
+    "zl_dif",
+    "zl_dea",
+    "zl_hist",
+    "zl_dif_pct",
+    "zl_dea_pct",
+    "zl_hist_pct",
+    "zl_hist_z",
+    "zl_hist_slope_pct",
+    "zl_hist_accel_pct",
 )
 
 
@@ -55,8 +72,7 @@ def zlema(values: list[float], period: int) -> list[float]:
     if period < 1 or not values:
         raise ValueError("ZLEMA needs a positive period and at least one value")
     lag = (period - 1) // 2
-    adjusted = [2 * value - values[max(0, index - lag)]
-                for index, value in enumerate(values)]
+    adjusted = [2 * value - values[max(0, index - lag)] for index, value in enumerate(values)]
     return ema(adjusted, period)
 
 
@@ -68,14 +84,16 @@ def rolling_zscore(values: list[float], window: int) -> list[float | None]:
         if index + 1 < window:
             result.append(None)
             continue
-        sample = values[index + 1 - window:index + 1]
+        sample = values[index + 1 - window : index + 1]
         mean = sum(sample) / window
         variance = sum((value - mean) ** 2 for value in sample) / window
         result.append((values[index] - mean) / math.sqrt(variance) if variance > 1e-24 else None)
     return result
 
 
-def macd(values: list[float], config: MacdConfig, *, zero_lag: bool) -> tuple[list[float], list[float], list[float]]:
+def macd(
+    values: list[float], config: MacdConfig, *, zero_lag: bool
+) -> tuple[list[float], list[float], list[float]]:
     smoother = zlema if zero_lag else ema
     fast_line = smoother(values, config.fast)
     slow_line = smoother(values, config.slow)
@@ -98,9 +116,12 @@ def compute_features(candles: list[dict], config: MacdConfig = MacdConfig()) -> 
     zero_lag = macd(closes, config, zero_lag=True)
     rows: list[dict] = []
     for index, candle in enumerate(candles):
-        row = {"timestamp_ms": candle["timestamp_ms"],
-               "datetime_utc": candle["datetime_utc"],
-               "close": candle["close"], "volume": candle["volume"]}
+        row = {
+            "timestamp_ms": candle["timestamp_ms"],
+            "datetime_utc": candle["datetime_utc"],
+            "close": candle["close"],
+            "volume": candle["volume"],
+        }
         for prefix, (dif, dea, hist) in (("", standard), ("zl_", zero_lag)):
             row[f"{prefix}dif"] = dif[index]
             row[f"{prefix}dea"] = dea[index]
@@ -114,7 +135,9 @@ def compute_features(candles: list[dict], config: MacdConfig = MacdConfig()) -> 
         scores = rolling_zscore(values, config.z_window)
         for index, row in enumerate(rows):
             row[f"{prefix}hist_z"] = scores[index]
-            row[f"{prefix}hist_slope_pct"] = values[index] - values[index - 1] if index >= 1 else None
+            row[f"{prefix}hist_slope_pct"] = (
+                values[index] - values[index - 1] if index >= 1 else None
+            )
             row[f"{prefix}hist_accel_pct"] = (
                 values[index] - 2 * values[index - 1] + values[index - 2] if index >= 2 else None
             )
@@ -155,7 +178,9 @@ def main() -> None:
         usable = usable_features(rows)
         print(f"Saved {len(rows)} feature rows ({len(usable)} after warmup) to {args.output}")
         print(f"Warmup: {config.warmup} rows; last UTC bar: {rows[-1]['datetime_utc']}")
-        print(f"Last normalized MACD histogram: {rows[-1]['hist_pct']:.6f}%, ZLEMA: {rows[-1]['zl_hist_pct']:.6f}%")
+        print(
+            f"Last normalized MACD histogram: {rows[-1]['hist_pct']:.6f}%, ZLEMA: {rows[-1]['zl_hist_pct']:.6f}%"
+        )
     except (OSError, ValueError) as exc:
         parser.exit(1, f"Error: {exc}\n")
 

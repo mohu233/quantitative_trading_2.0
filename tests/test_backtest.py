@@ -9,7 +9,8 @@ from argparse import Namespace
 from datetime import datetime
 from pathlib import Path
 
-from main import FIELDS, MINUTE_MS, backtest, utc_text, validate_candles
+from quantitative_trading.candles import FIELDS, MINUTE_MS, utc_text, validate_candles
+from quantitative_trading.backtest import backtest
 
 
 class PaperBacktestTests(unittest.TestCase):
@@ -32,14 +33,28 @@ class PaperBacktestTests(unittest.TestCase):
                 for index, close in enumerate(prices):
                     timestamp = index * MINUTE_MS
                     opening = 3 if index == 3 else close
-                    writer.writerow({
-                        "timestamp_ms": timestamp, "datetime_utc": utc_text(timestamp),
-                        "open": opening, "high": max(opening, close),
-                        "low": min(opening, close), "close": close,
-                        "volume": 1, "volume_quote": 1, "confirm": "1",
-                    })
-            args = Namespace(input=str(csv_path), fast=2, slow=3, initial_cash=100,
-                             fee_bps=10, slippage_bps=5, trades=str(trades_path))
+                    writer.writerow(
+                        {
+                            "timestamp_ms": timestamp,
+                            "datetime_utc": utc_text(timestamp),
+                            "open": opening,
+                            "high": max(opening, close),
+                            "low": min(opening, close),
+                            "close": close,
+                            "volume": 1,
+                            "volume_quote": 1,
+                            "confirm": "1",
+                        }
+                    )
+            args = Namespace(
+                input=str(csv_path),
+                fast=2,
+                slow=3,
+                initial_cash=100,
+                fee_bps=10,
+                slippage_bps=5,
+                trades=str(trades_path),
+            )
             output = io.StringIO()
             with contextlib.redirect_stdout(output):
                 backtest(args)
@@ -62,19 +77,40 @@ class PaperBacktestTests(unittest.TestCase):
                 for index in range(120):
                     timestamp = index * MINUTE_MS
                     close = 100 + 3 * math.sin(index / 4)
-                    writer.writerow({"timestamp_ms": timestamp, "datetime_utc": utc_text(timestamp),
-                                     "open": close, "high": close, "low": close, "close": close,
-                                     "volume": 1, "volume_quote": close, "confirm": "1"})
-            args = Namespace(input=str(csv_path), strategy="macd", macd_fast=3, macd_slow=7,
-                             macd_signal=3, z_window=10, initial_cash=100, fee_bps=10,
-                             slippage_bps=5, trades=str(trades_path))
+                    writer.writerow(
+                        {
+                            "timestamp_ms": timestamp,
+                            "datetime_utc": utc_text(timestamp),
+                            "open": close,
+                            "high": close,
+                            "low": close,
+                            "close": close,
+                            "volume": 1,
+                            "volume_quote": close,
+                            "confirm": "1",
+                        }
+                    )
+            args = Namespace(
+                input=str(csv_path),
+                strategy="macd",
+                macd_fast=3,
+                macd_slow=7,
+                macd_signal=3,
+                z_window=10,
+                initial_cash=100,
+                fee_bps=10,
+                slippage_bps=5,
+                trades=str(trades_path),
+            )
             with contextlib.redirect_stdout(io.StringIO()):
                 backtest(args)
             with trades_path.open(newline="", encoding="utf-8") as handle:
                 trades = list(csv.DictReader(handle))
             self.assertGreater(len(trades), 0)
             for trade in trades:
-                signal_timestamp = int(datetime.fromisoformat(trade["signal_time_utc"]).timestamp() * 1000)
+                signal_timestamp = int(
+                    datetime.fromisoformat(trade["signal_time_utc"]).timestamp() * 1000
+                )
                 fill_timestamp = int(datetime.fromisoformat(trade["time_utc"]).timestamp() * 1000)
                 self.assertEqual(fill_timestamp - signal_timestamp, MINUTE_MS)
 

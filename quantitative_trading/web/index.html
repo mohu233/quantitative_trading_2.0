@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width,initial-scale=1" name="viewport"/>
+  <title>
+   OKX · 行情研究台
+  </title>
+  <link href="/assets/styles.css" rel="stylesheet"/>
+ </head>
+ <body>
+  <header>
+   <div>
+    <div class="eyebrow">
+     LOCAL MARKET LAB
+    </div>
+    <h1>
+     OKX 行情研究台
+    </h1>
+    <div class="muted">
+     现货行情 · 1 分钟 K 线 · MySQL 持久化
+    </div>
+   </div>
+   <div class="status" id="status">
+    ● 正在连接
+   </div>
+  </header>
+  <main>
+   <div class="toolbar">
+    <div>
+     <select id="symbol">
+      <option>
+       BTC-USDT
+      </option>
+      <option>
+       ETH-USDT
+      </option>
+     </select>
+     <span class="muted">
+      1m / 最近 4 小时
+     </span>
+    </div>
+    <button id="refresh">
+     刷新数据
+    </button>
+   </div>
+   <div class="error" id="error">
+   </div>
+   <div class="grid">
+    <div class="card">
+     <div class="label">
+      最新成交价 / USDT
+     </div>
+     <div class="value" id="price">
+      —
+     </div>
+     <div class="detail" id="change">
+      等待实时行情
+     </div>
+    </div>
+    <div class="card">
+     <div class="label">
+      24h 最高 / 最低
+     </div>
+     <div class="value" id="high">
+      —
+     </div>
+     <div class="detail" id="low">
+      —
+     </div>
+    </div>
+    <div class="card">
+     <div class="label">
+      24h 成交额 / USDT
+     </div>
+     <div class="value" id="turnover">
+      —
+     </div>
+     <div class="detail">
+      交易所报价币成交额
+     </div>
+    </div>
+    <div class="card">
+     <div class="label">
+      已存储 K 线
+     </div>
+     <div class="value" id="count">
+      —
+     </div>
+     <div class="detail">
+      按币种 + 开盘时间唯一存储
+     </div>
+    </div>
+   </div>
+   <div class="chart market-chart" id="marketChart">
+    <div aria-live="off" class="inspect" id="inspect">
+     将鼠标移到图表上，查看同一分钟的价格、成交量和 MACD。
+    </div>
+    <div class="chart-head">
+     <h2>
+      价格走势
+     </h2>
+     <div class="legend">
+      绿色上涨 / 红色下跌 · 最右侧虚线为未收盘 K 线
+     </div>
+    </div>
+    <canvas id="priceChart">
+    </canvas>
+    <div class="chart-head">
+     <h2>
+      成交量
+     </h2>
+     <span class="legend">
+      基础币数量
+     </span>
+    </div>
+    <canvas id="volume">
+    </canvas>
+    <div class="chart-head">
+     <h2>
+      MACD · 12 / 26 / 9
+     </h2>
+     <div class="legend">
+      DIF 蓝色 · DEA 黄色 · 柱状图不乘 2
+     </div>
+    </div>
+    <canvas id="macd">
+    </canvas>
+    <div class="crosshair vertical" id="crossVertical">
+    </div>
+    <div class="crosshair horizontal" id="crossHorizontal">
+    </div>
+    <div class="chart-tooltip" id="chartTooltip">
+    </div>
+   </div>
+   <div class="bottom">
+    <div class="card facts">
+     <h2 style="font-size:15px;margin-top:0">
+      最新已收盘指标
+     </h2>
+     <div>
+      Hist Z-Score
+      <span id="z">
+       —
+      </span>
+     </div>
+     <div>
+      归一化柱状图斜率
+      <span id="slope">
+       —
+      </span>
+     </div>
+     <div>
+      归一化柱状图加速度
+      <span id="accel">
+       —
+      </span>
+     </div>
+     <div>
+      ZLEMA 柱状图
+      <span id="zl">
+       —
+      </span>
+     </div>
+     <div class="detail">
+      指标仅使用已收盘、连续的历史 K 线。
+     </div>
+    </div>
+   </div>
+   <div class="foot">
+    <span id="updated">
+     尚未同步
+    </span>
+    <span id="source">
+     数据源：OKX 公开 API
+    </span>
+    <span>
+     每 5 秒自动刷新 · 本地服务运行时持续采集
+    </span>
+   </div>
+  </main>
+  <script defer="" src="/assets/app.js">
+  </script>
+ </body>
+</html>
