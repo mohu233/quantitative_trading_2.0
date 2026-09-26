@@ -1,0 +1,5 @@
+.local.json
+__pycache__/
+logs/
+*.pid
+models/*.gguf
